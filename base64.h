@@ -25,24 +25,28 @@ void base64_encode_file(const char* in_file, const char* out_file);
 /// @param out_file название файла, в который записываются расшифрованные данные
 void base64_decode_file(const char* in_file, const char* out_file);
 
-/// @brief Объединение, представляющее собой блок начальных данных. 
-typedef union Block {
-    char bytes[3];
-    unsigned int integer;
-} Block;
-
 #ifdef BASE64_IMPLEMENTATION
 
 const char* TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const char PADDING = '=';
 
-void dbg(Block block, int i) {
+int concat_chars(char hi, char mid, char lo) {
+    return ((int)(hi) << 16) | ((int)(mid) << 8) | lo;
+}
+
+void dbg(char block[], int i) {
     printf("block %i\n", i);
-    printf("chars %c %c %c\n", block.bytes[0], block.bytes[1], block.bytes[2]);
-    int idx1 = block.integer & 0x3F;
-    int idx2 = (block.integer >> 6) & 0x3F;
-    int idx3 = (block.integer >> 12) & 0x3F;
-    int idx4 = (block.integer >> 18) & 0x3F;
+    printf("chars %c %c %c\n", block[0], block[1], block[2]);
+    int block_int = concat_chars(block[0], block[1], block[2]);
+    printf("integer ");
+    for (int i = 0; i < 32; i++) {
+        printf("%i", (block_int >> i) & 1);
+    } 
+    printf("\n");
+    int idx1 = (block_int >> 18) & 0x3F;
+    int idx2 = (block_int >> 12) & 0x3F;
+    int idx3 = (block_int >> 6) & 0x3F;
+    int idx4 = block_int & 0x3F;
     printf("idxs %i %i %i %i\n", idx1, idx2, idx3, idx4);
 }
 
@@ -61,9 +65,10 @@ char* base64_encode(char* data, size_t size) {
     char* result = (char*)malloc(n_blocks * 4 * sizeof(char) + 1);
     // Итерация по блокам по 3 байта
     for (int i = 0; i < n_blocks; i++) {
-        Block block = {0};
+        char block[3] = {0};
         // Копируем в объединение блок 3 байта
-        memcpy(block.bytes, padded_data + i*3, 3);
+        memcpy(block, padded_data + i*3, 3);
+        int block_int = concat_chars(block[0], block[1], block[2]);
         dbg(block, i);
         char c1;
         char c2;
@@ -73,10 +78,10 @@ char* base64_encode(char* data, size_t size) {
         if (i != n_blocks - 1) {
             // Извлекаем из объединения индексы для таблицы
             // 0x3F = 0b111111
-            int idx1 = block.integer & 0x3F;
-            int idx2 = (block.integer >> 6) & 0x3F;
-            int idx3 = (block.integer >> 12) & 0x3F;
-            int idx4 = (block.integer >> 18) & 0x3F;
+            int idx1 = (block_int >> 18) & 0x3F;
+            int idx2 = (block_int >> 12) & 0x3F;
+            int idx3 = (block_int >> 6) & 0x3F;
+            int idx4 = block_int & 0x3F;
             // и по ним получаем 4 буквы base64
             c1 = TABLE[idx1];
             c2 = TABLE[idx2];
@@ -87,11 +92,11 @@ char* base64_encode(char* data, size_t size) {
         // Возможно, будет необходимо добавить padding
         else {
             // Если нулевые 2 последних байта
-            if (block.bytes[1] == 0 && block.bytes[2] == 0) {
+            if (block[1] == 0 && block[2] == 0) {
                 // Извлекаем только 2 индекса
                 // 0x3F = 0b111111
-                int idx1 = block.integer & 0x3F;
-                int idx2 = (block.integer >> 6) & 0x3F;
+                int idx1 = (block_int >> 6) & 0x3F;
+                int idx2 = block_int & 0x3F;
                 // Получим только 2 буквы base64, все остальное - padding 
                 c1 = TABLE[idx1];
                 c2 = TABLE[idx2];
@@ -99,12 +104,12 @@ char* base64_encode(char* data, size_t size) {
                 c4 = PADDING;
             }
             // Если нулевой только последний байт
-            else if (block.bytes[2] == 0) {
+            else if (block[2] == 0) {
                 // Извлекаем 3 индекса
                 // 0x3F = 0b111111
-                int idx1 = block.integer & 0x3F;
-                int idx2 = (block.integer >> 6) & 0x3F;
-                int idx3 = (block.integer >> 12) & 0x3F;
+                int idx1 = (block_int >> 12) & 0x3F;
+                int idx2 = (block_int >> 6) & 0x3F;
+                int idx3 = block_int & 0x3F;
                 // Получим 3 буквы base64, все остальное - padding 
                 c1 = TABLE[idx1];
                 c2 = TABLE[idx2];
@@ -115,10 +120,10 @@ char* base64_encode(char* data, size_t size) {
             else {
                 // Извлекаем из объединения индексы для таблицы
                 // 0x3F = 0b111111
-                int idx1 = block.integer & 0x3F;
-                int idx2 = (block.integer >> 6) & 0x3F;
-                int idx3 = (block.integer >> 12) & 0x3F;
-                int idx4 = (block.integer >> 18) & 0x3F;
+                int idx1 = (block_int >> 18) & 0x3F;
+                int idx2 = (block_int >> 12) & 0x3F;
+                int idx3 = (block_int >> 6) & 0x3F;
+                int idx4 = block_int & 0x3F;
                 // и по ним получаем 4 буквы base64
                 c1 = TABLE[idx1];
                 c2 = TABLE[idx2];
