@@ -99,10 +99,11 @@ char* base64_encode(char* data, size_t size) {
             // Все как обычно, все 3 байта ненулевые
             else {
                 // Извлекаем из объединения индексы для таблицы
-                int idx1 = block.integer & 0b111111;
-                int idx2 = (block.integer >> 6) & 0b111111;
-                int idx3 = (block.integer >> 12) & 0b111111;
-                int idx4 = (block.integer >> 18) & 0b111111;
+                // 0x3F = 0b111111
+                int idx1 = block.integer & 0x3F;
+                int idx2 = (block.integer >> 6) & 0x3F;
+                int idx3 = (block.integer >> 12) & 0x3F;
+                int idx4 = (block.integer >> 18) & 0x3F;
                 // и по ним получаем 4 буквы base64
                 c1 = TABLE[idx1];
                 c2 = TABLE[idx2];
