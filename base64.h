@@ -132,10 +132,10 @@ char* base64_encode(char* data, size_t size) {
             }
         }
         // Полученные буквы записываются в буфер для результата
-        result[3*i + 0 + i] = c1;
-        result[3*i + 1 + i] = c2;
-        result[3*i + 2 + i] = c3;
-        result[3*i + 3 + i] = c4;
+        result[4*i + 0] = c1;
+        result[4*i + 1] = c2;
+        result[4*i + 2] = c3;
+        result[4*i + 3] = c4;
     }
     return result;
 }
