@@ -39,8 +39,8 @@ void dbg(char block[], int i) {
     printf("chars %c %c %c\n", block[0], block[1], block[2]);
     int block_int = concat_chars(block[0], block[1], block[2]);
     printf("integer ");
-    for (int i = 0; i < 32; i++) {
-        printf("%i", (block_int >> i) & 1);
+    for (int i = 0; i < 24; i++) {
+        printf("%i", (block_int >> (24 - i)) & 1);
     } 
     printf("\n");
     int idx1 = (block_int >> 18) & 0x3F;
@@ -69,7 +69,7 @@ char* base64_encode(char* data, size_t size) {
         // Копируем в объединение блок 3 байта
         memcpy(block, padded_data + i*3, 3);
         int block_int = concat_chars(block[0], block[1], block[2]);
-        dbg(block, i);
+        // dbg(block, i);
         char c1;
         char c2;
         char c3;
@@ -95,8 +95,8 @@ char* base64_encode(char* data, size_t size) {
             if (block[1] == 0 && block[2] == 0) {
                 // Извлекаем только 2 индекса
                 // 0x3F = 0b111111
-                int idx1 = (block_int >> 6) & 0x3F;
-                int idx2 = block_int & 0x3F;
+                int idx1 = (block_int >> 18) & 0x3F;
+                int idx2 = (block_int >> 12) & 0x3F;
                 // Получим только 2 буквы base64, все остальное - padding 
                 c1 = TABLE[idx1];
                 c2 = TABLE[idx2];
@@ -107,9 +107,9 @@ char* base64_encode(char* data, size_t size) {
             else if (block[2] == 0) {
                 // Извлекаем 3 индекса
                 // 0x3F = 0b111111
-                int idx1 = (block_int >> 12) & 0x3F;
-                int idx2 = (block_int >> 6) & 0x3F;
-                int idx3 = block_int & 0x3F;
+                int idx1 = (block_int >> 18) & 0x3F;
+                int idx2 = (block_int >> 12) & 0x3F;
+                int idx3 = (block_int >> 6) & 0x3F;
                 // Получим 3 буквы base64, все остальное - padding 
                 c1 = TABLE[idx1];
                 c2 = TABLE[idx2];
@@ -132,10 +132,10 @@ char* base64_encode(char* data, size_t size) {
             }
         }
         // Полученные буквы записываются в буфер для результата
-        result[3*i] = c1;
-        result[3*i+1] = c2;
-        result[3*i+2] = c3;
-        result[3*i+3] = c4;
+        result[3*i + 0 + i] = c1;
+        result[3*i + 1 + i] = c2;
+        result[3*i + 2 + i] = c3;
+        result[3*i + 3 + i] = c4;
     }
     return result;
 }
