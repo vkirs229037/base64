@@ -2,6 +2,7 @@
 
 #include "stdlib.h"
 #include "string.h"
+#include "stdio.h"
 
 #define BASE64_IMPLEMENTATION
 // RFC 4648
@@ -35,12 +36,22 @@ typedef union Block {
 const char* TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const char PADDING = '=';
 
+void dbg(Block block, int i) {
+    printf("block %i\n", i);
+    printf("chars %c %c %c\n", block.bytes[0], block.bytes[1], block.bytes[2]);
+    int idx1 = block.integer & 0x3F;
+    int idx2 = (block.integer >> 6) & 0x3F;
+    int idx3 = (block.integer >> 12) & 0x3F;
+    int idx4 = (block.integer >> 18) & 0x3F;
+    printf("idxs %i %i %i %i\n", idx1, idx2, idx3, idx4);
+}
+
 char* base64_encode(char* data, size_t size) {
     // Число блоков по 3 байта в начальных данных.
     // Не всегда данные можно поделить на такие блоки.
     // В таком случае добавим еще один блок, в котором будет 
     // только 1 или 2 ненулевых байта. 
-    size_t n_blocks = (int)(size / 3) + (int)(size % 3 == 0);
+    size_t n_blocks = (int)(size / 3) + (int)(size % 3 != 0);
     // Копия данных округленного размера
     char* padded_data = (char*)malloc(n_blocks * 3 * sizeof(char));
     memset(padded_data, 0, n_blocks * 3);
@@ -52,7 +63,8 @@ char* base64_encode(char* data, size_t size) {
     for (int i = 0; i < n_blocks; i++) {
         Block block = {0};
         // Копируем в объединение блок 3 байта
-        memcpy(block.bytes, padded_data + i, 3);
+        memcpy(block.bytes, padded_data + i*3, 3);
+        dbg(block, i);
         char c1;
         char c2;
         char c3;
@@ -115,10 +127,10 @@ char* base64_encode(char* data, size_t size) {
             }
         }
         // Полученные буквы записываются в буфер для результата
-        result[i] = c1;
-        result[i+1] = c2;
-        result[i+2] = c3;
-        result[i+3] = c4;
+        result[3*i] = c1;
+        result[3*i+1] = c2;
+        result[3*i+2] = c3;
+        result[3*i+3] = c4;
     }
     return result;
 }
