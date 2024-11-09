@@ -60,10 +60,11 @@ char* base64_encode(char* data, size_t size) {
         // Если непоследний блок
         if (i != n_blocks - 1) {
             // Извлекаем из объединения индексы для таблицы
-            int idx1 = block.integer & 0b111111;
-            int idx2 = (block.integer >> 6) & 0b111111;
-            int idx3 = (block.integer >> 12) & 0b111111;
-            int idx4 = (block.integer >> 18) & 0b111111;
+            // 0x3F = 0b111111
+            int idx1 = block.integer & 0x3F;
+            int idx2 = (block.integer >> 6) & 0x3F;
+            int idx3 = (block.integer >> 12) & 0x3F;
+            int idx4 = (block.integer >> 18) & 0x3F;
             // и по ним получаем 4 буквы base64
             c1 = TABLE[idx1];
             c2 = TABLE[idx2];
@@ -76,8 +77,9 @@ char* base64_encode(char* data, size_t size) {
             // Если нулевые 2 последних байта
             if (block.bytes[1] == 0 && block.bytes[2] == 0) {
                 // Извлекаем только 2 индекса
-                int idx1 = block.integer & 0b111111;
-                int idx2 = (block.integer >> 6) & 0b111111;
+                // 0x3F = 0b111111
+                int idx1 = block.integer & 0x3F;
+                int idx2 = (block.integer >> 6) & 0x3F;
                 // Получим только 2 буквы base64, все остальное - padding 
                 c1 = TABLE[idx1];
                 c2 = TABLE[idx2];
@@ -87,9 +89,10 @@ char* base64_encode(char* data, size_t size) {
             // Если нулевой только последний байт
             else if (block.bytes[2] == 0) {
                 // Извлекаем 3 индекса
-                int idx1 = block.integer & 0b111111;
-                int idx2 = (block.integer >> 6) & 0b111111;
-                int idx3 = (block.integer >> 12) & 0b111111;
+                // 0x3F = 0b111111
+                int idx1 = block.integer & 0x3F;
+                int idx2 = (block.integer >> 6) & 0x3F;
+                int idx3 = (block.integer >> 12) & 0x3F;
                 // Получим 3 буквы base64, все остальное - padding 
                 c1 = TABLE[idx1];
                 c2 = TABLE[idx2];
