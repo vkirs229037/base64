@@ -241,28 +241,36 @@ char* base64_decode(char* data) {
         char bytes[3];
         // Если последние 2 знака - =
         if (block[2] == '=' && block[3] == '=') {
-            exit(1);
+            int idx1 = TABLE_FROM[(int)block[0]];
+            int idx2 = TABLE_FROM[(int)block[1]];
+            integer = (idx1 << 18) | (idx2 << 12);
+            char* chars = into_chars(integer);
+            memcpy(bytes, chars, 1);
+            free(chars);
         } 
         // Если только последний знак - =
         else if (block[3] == '=') {
-            exit(1);
+            printf("1 =\n");
+            int idx1 = TABLE_FROM[(int)block[0]];
+            int idx2 = TABLE_FROM[(int)block[1]];
+            int idx3 = TABLE_FROM[(int)block[2]];
+            integer = (idx1 << 18) | (idx2 << 12) | (idx3 << 6);
+            char* chars = into_chars(integer);
+            memcpy(bytes, chars, 2);
+            free(chars);
         }
         else {
             int idx1 = TABLE_FROM[(int)block[0]];
             int idx2 = TABLE_FROM[(int)block[1]];
             int idx3 = TABLE_FROM[(int)block[2]];
             int idx4 = TABLE_FROM[(int)block[3]];
-            print_bin(idx1, 6);
-            print_bin(idx2, 6);
-            print_bin(idx3, 6);
-            print_bin(idx4, 6);
             integer = (idx1 << 18) | (idx2 << 12) | (idx3 << 6) | idx4;
-            print_bin(integer, 32);
             char* chars = into_chars(integer);
             memcpy(bytes, chars, 3);
             free(chars);
         }
         memcpy(result + 3*i, bytes, 3);
+        memset(bytes, 0, 3);
     }
     return result;
 }
