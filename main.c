@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
         }
         // COM_DECODE ARG_TEXT
         case 0x1001: {
-            char* result = base64_decode(data.text);
+            char* result = base64_decode(data.text, data.num);
             printf("%s\n", result);
             free(result);
             break;
