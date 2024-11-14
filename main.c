@@ -2,6 +2,8 @@
 #define BASE64_IMPLEMENTATION
 #include "base64.h"
 
+const char* VERSION = "0.0.3";
+
 typedef enum Command {
     COM_ENCODE = 0x0100,
     COM_DECODE = 0x1000,
@@ -27,6 +29,9 @@ void help() {
     printf("Аргумент для раскодирования");
     printf("    -t <text>            Текст text (в base64)");
     printf("    -f <filename>        Входной файл");
+    printf("Помощь");
+    printf("    -h                   Вывести эту справку");
+    printf("    -v                   Версия");
 }
 
 void parse_argv(int argc, char** argv, Data* data) {
@@ -105,6 +110,10 @@ void parse_argv(int argc, char** argv, Data* data) {
     } 
     else if (strcmp(argv[1], "-h") == 0) {
         help();
+        exit(0);
+    }
+    else if (strcmp(argv[1], "-v") == 0) {
+        printf("%s\n", VERSION);
         exit(0);
     }
     else {
