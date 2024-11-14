@@ -132,6 +132,7 @@ int main(int argc, char** argv) {
         case 0x0101: {
             char* result = base64_encode(data.text, data.num);
             printf("%s\n", result);
+            free(result);
             break;
         }
         // COM_ENCODE ARG_FILE
@@ -141,12 +142,14 @@ int main(int argc, char** argv) {
             memcpy(out_file_name, data.text, data.num);
             memcpy(out_file_name + data.num, ".base64", 7);
             base64_encode_file(data.text, out_file_name);
+            free(out_file_name);
             break;
         }
         // COM_DECODE ARG_TEXT
         case 0x1001: {
             char* result = base64_decode(data.text);
             printf("%s\n", result);
+            free(result);
             break;
         }
         // COM_DECODE ARG_FILE
@@ -156,6 +159,7 @@ int main(int argc, char** argv) {
             memcpy(out_file_name, data.text, data.num);
             memcpy(out_file_name + data.num, ".decoded", 8);
             base64_decode_file(data.text, out_file_name);
+            free(out_file_name);
             break;
         }
     }
