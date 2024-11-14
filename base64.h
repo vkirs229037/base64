@@ -3,6 +3,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stdio.h"
+#include "stdbool.h"
 
 #define BASE64_IMPLEMENTATION
 // RFC 4648
@@ -14,16 +15,19 @@
 char* base64_encode(char* data, size_t size);
 /// @brief Расшифровать данные из base64. 
 /// @param data зашифрованные данные
+/// @param size длина зашифрованных данных
 /// @return Расшифрованные данные
-char* base64_decode(char* data);
+char* base64_decode(char* data, size_t size);
 /// @brief Зашифровать файл в base64.
 /// @param in_file название файла для шифрования
 /// @param out_file название файла, в который записываются зашифрованные данные
-void base64_encode_file(const char* in_file, const char* out_file);
+/// @return true в случае успешной работы, иначе false
+bool base64_encode_file(const char* in_file, const char* out_file);
 /// @brief Расшифровать файл, заданный в base64
 /// @param in_file название зашифрованного файла
 /// @param out_file название файла, в который записываются расшифрованные данные
-void base64_decode_file(const char* in_file, const char* out_file);
+/// @return true в случае успешной работы, иначе false
+bool base64_decode_file(const char* in_file, const char* out_file);
 
 #ifdef BASE64_IMPLEMENTATION
 
@@ -222,9 +226,7 @@ char* base64_encode(char* data, size_t size) {
     return result;
 }
 
-char* base64_decode(char* data) {
-    // Длина входных данных, т.е. строки base64
-    size_t size = strlen(data);
+char* base64_decode(char* data, size_t size) {
     // Количество квартетов
     // Длина строки base64 всегда делится на 4
     size_t n_blocks = size / 4;
@@ -275,14 +277,90 @@ char* base64_decode(char* data) {
     return result;
 }
 
-void base64_encode_file(const char* in_file, const char* out_file) {
-    printf("TODO: base64_encode_file. %s %s\n", in_file, out_file);
-    return;
+bool base64_encode_file(const char* in_file, const char* out_file) {
+    FILE* in_fstream;
+    in_fstream = fopen(in_file, "rb");
+    if (in_fstream == NULL) {
+        printf("Ошибка: файл %s не мог быть открыт\n", in_file);
+        return false;
+    }
+
+    FILE* out_fstream;
+    out_fstream = fopen(out_file, "wb+");
+    if (out_fstream == NULL) {
+        printf("Ошибка: файл %s не мог быть открыт\n", in_file);
+        return false;
+    }
+
+    size_t block_size = 512; // байт
+    char in_buffer[block_size];
+    char* base64_buffer;
+    size_t read_bytes;
+    while ((read_bytes = fread(in_buffer, 1, block_size, in_fstream)) == block_size) {
+        base64_buffer = base64_encode(in_buffer, block_size);
+        fwrite(base64_buffer, 1, block_size, out_fstream);
+        free(base64_buffer);
+        memset(in_buffer, 0, read_bytes);
+    }
+
+    if (!feof(in_fstream)) {
+        printf("Произошла ошибка при чтении файла %s\n", in_file);
+        fclose(in_fstream);
+        fclose(out_fstream);
+        return false;
+    }
+
+    base64_buffer = base64_encode(in_buffer, read_bytes);
+    fwrite(base64_buffer, 1, read_bytes, out_fstream);
+    free(base64_buffer);
+
+    fclose(in_fstream);
+    fclose(out_fstream);
+
+    return true;
 }
 
-void base64_decode_file(const char* in_file, const char* out_file) {
-    printf("TODO: base64_decode_file. %s %s\n", in_file, out_file);
-    return;
+bool base64_decode_file(const char* in_file, const char* out_file) {
+    FILE* in_fstream;
+    in_fstream = fopen(in_file, "rb");
+    if (in_fstream == NULL) {
+        printf("Ошибка: файл %s не мог быть открыт\n", in_file);
+        return false;
+    }
+
+    FILE* out_fstream;
+    out_fstream = fopen(out_file, "wb+");
+    if (out_fstream == NULL) {
+        printf("Ошибка: файл %s не мог быть открыт\n", in_file);
+        return false;
+    }
+
+    size_t block_size = 512; // байт
+    char in_buffer[block_size];
+    char* decoded_buffer;
+    size_t read_bytes;
+    while ((read_bytes = fread(in_buffer, 1, block_size, in_fstream)) == block_size) {
+        decoded_buffer = base64_decode(in_buffer, block_size);
+        fwrite(decoded_buffer, 1, block_size, out_fstream);
+        free(decoded_buffer);
+        memset(in_buffer, 0, read_bytes);
+    }
+
+    if (!feof(in_fstream)) {
+        printf("Произошла ошибка при чтении файла %s\n", in_file);
+        fclose(in_fstream);
+        fclose(out_fstream);
+        return false;
+    }
+
+    decoded_buffer = base64_decode(in_buffer, read_bytes);
+    fwrite(decoded_buffer, 1, read_bytes, out_fstream);
+    free(decoded_buffer);
+
+    fclose(in_fstream);
+    fclose(out_fstream);
+
+    return true;
 }
 
 #endif // BASE64_IMPLEMENTATION
