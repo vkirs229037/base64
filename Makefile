@@ -1,2 +1,2 @@
 all:
-	gcc -Wall -Wpedantic main.c -o main
+	gcc -Wall -Wpedantic main.c -o base64
