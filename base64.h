@@ -276,10 +276,12 @@ char* base64_decode(char* data) {
 }
 
 void base64_encode_file(const char* in_file, const char* out_file) {
+    printf("TODO: base64_encode_file. %s %s\n", in_file, out_file);
     return;
 }
 
 void base64_decode_file(const char* in_file, const char* out_file) {
+    printf("TODO: base64_decode_file. %s %s\n", in_file, out_file);
     return;
 }
 
